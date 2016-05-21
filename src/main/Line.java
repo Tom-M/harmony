@@ -39,5 +39,14 @@ public class Line {
       this.velocities.add(velocity);
     }
   }
+  
+  /**
+   * Get the number of notes in this line
+   * 
+   * @return integer value 
+   */
+  public int getLength(){
+    return this.timestamps.size();
+  }
 
 }
