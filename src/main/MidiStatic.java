@@ -57,7 +57,7 @@ public class MidiStatic {
 
     // Obtain a sequence from the midi file
     Sequence sequence = MidiSystem.getSequence(midiImport);
-    
+
     Line melody = new Line(sequence.getResolution(), sequence.getDivisionType());
 
     // Iterate over the tracks in the sequence
@@ -155,7 +155,7 @@ public class MidiStatic {
     if (!filepath.endsWith(".mid")) {
       throw new InvalidParameterException("The filepath must have suffix .mid");
     }
-    
+
     Sequence s = new Sequence(line.getDivisionType(), line.getTicksPerBeat());
 
     Track t = s.createTrack();
@@ -175,36 +175,23 @@ public class MidiStatic {
     t.add(me);
 
     // Set omni on
-    ShortMessage mm = new ShortMessage();
-    mm.setMessage(0xB0, 0x7D, 0x00);
-    me = new MidiEvent(mm, (long) 0);
-    t.add(me);
+    addShortMessageToTrack(t, 0xB0, 0x7D, 0x00, 0, 0);
 
     // Turn poly on
-    mm = new ShortMessage();
-    mm.setMessage(0xB0, 0x7F, 0x00);
-    me = new MidiEvent(mm, (long) 0);
-    t.add(me);
+    addShortMessageToTrack(t, 0xB0, 0x7F, 0x00, 0, 0);
 
     // Set instrument to piano
-    mm = new ShortMessage();
-    mm.setMessage(0xC0, 0x00, 0x00);
-    me = new MidiEvent(mm, (long) 0);
-    t.add(me);
+    addShortMessageToTrack(t, 0xC0, 0x00, 0x00, 0, 0);
 
     for (int i = 0; i < line.getLength(); i++) {
 
       // Note on at t=timestamp
-      mm = new ShortMessage();
-      mm.setMessage(NOTE_ON, line.getPitchAtIndex(i), line.getVelocityAtIndex(i));
-      me = new MidiEvent(mm, line.getTimeStampAtIndex(i));
-      t.add(me);
+      addShortMessageToTrack(t, NOTE_ON, line.getPitchAtIndex(i), line.getVelocityAtIndex(i),
+          line.getTimeStampAtIndex(i), 0);
 
       // Note off at timestamp+duration
-      mm = new ShortMessage();
-      mm.setMessage(NOTE_OFF, line.getPitchAtIndex(i), 0x00);
-      me = new MidiEvent(mm, line.getTimeStampAtIndex(i) + line.getDurationAtIndex(i));
-      t.add(me);
+      addShortMessageToTrack(t, NOTE_OFF, line.getPitchAtIndex(i), 0x00,
+          line.getTimeStampAtIndex(i), line.getDurationAtIndex(i));
 
     }
 
@@ -219,6 +206,30 @@ public class MidiStatic {
 
     File f = new File(filepath);
     MidiSystem.write(s, 1, f);
+
+  }
+
+  /**
+   * A private method to keep saveLineToMidiFile neater. Add a short midi message to the Track t.
+   * 
+   * @param t The track the message will be added to
+   * @param status The MIDI status byte for this short message, defining in broad terms what the
+   *        message does (e.g. NOTE_ON, NOTE_OFF)
+   * @param dataByte1 The first databyte as an int or byte. In the case of NOTE_ON/NOTE_OFF this is
+   *        the pitch
+   * @param dataByte2 The second databyte as an int or byte. In the case of NOTE_ON/NOTE_OFF this is
+   *        the velocity
+   * @param timestamp The time at which the event in this message occurs (as a long)
+   * @param duration The duration of the event. If status != NOTE_OFF then this should be set to 0
+   * @throws InvalidMidiDataException
+   */
+  private static void addShortMessageToTrack(Track t, int status, int dataByte1, int dataByte2,
+      long timestamp, long duration) throws InvalidMidiDataException {
+
+    ShortMessage mm = new ShortMessage();
+    mm.setMessage(status, dataByte1, dataByte2);
+    MidiEvent me = new MidiEvent(mm, timestamp + duration);
+    t.add(me);
 
   }
 
