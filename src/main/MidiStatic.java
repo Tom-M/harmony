@@ -4,13 +4,18 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.InvalidParameterException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.ShortMessage;
+import javax.sound.midi.SysexMessage;
 import javax.sound.midi.Track;
 
 /**
@@ -53,7 +58,7 @@ public class MidiStatic {
     // Obtain a sequence from the midi file
     Sequence sequence = MidiSystem.getSequence(midiImport);
 
-    Line melody = new Line();
+    Line melody = new Line(sequence.getResolution(), sequence.getDivisionType());
 
     // Iterate over the tracks in the sequence
     for (Track track : sequence.getTracks()) {
@@ -116,6 +121,116 @@ public class MidiStatic {
       }
     }
     return melody;
+  }
+
+  /**
+   * An override for saveLineToMidiFile. This one saves it to the savedMidis folder of this project,
+   * and names the file with the date and time. These files are ignored by git.
+   * 
+   * @param line The line to be saved
+   * @throws InvalidMidiDataException
+   * @throws IOException
+   */
+  public static void saveLineToMidiFile(Line line) throws InvalidMidiDataException, IOException {
+
+    // Get the date and time for use in the default extension
+    DateFormat df = new SimpleDateFormat("dd-MM-yy_HH-mm-ss");
+    Date dateobj = new Date();
+
+    saveLineToMidiFile(line, "src/savedMidis/" + df.format(dateobj) + ".mid");
+  }
+
+  /**
+   * Take a Line object as input and save it out to a .mid file. Based on (more or less verbatim)
+   * http://www.automatic-pilot.com/midifile.html
+   * 
+   * @param line The line to be saved as a .mid file
+   * @param filepath The filepath to be saved to. Must end with .mid
+   * @throws InvalidMidiDataException
+   * @throws IOException
+   */
+  public static void saveLineToMidiFile(Line line, String filepath)
+      throws InvalidMidiDataException, IOException {
+
+    if (!filepath.endsWith(".mid")) {
+      throw new InvalidParameterException("The filepath must have suffix .mid");
+    }
+
+    int ticksPerBeat = line.getTicksPerBeat();
+
+    Sequence s = new Sequence(line.getDivisionType(), ticksPerBeat);
+
+    Track t = s.createTrack();
+
+    // Turn on general midi sound set
+    byte[] b = {(byte) 0xF0, 0x7E, 0x7F, 0x09, 0x01, (byte) 0xF7};
+    SysexMessage sm = new SysexMessage();
+    sm.setMessage(b, 6);
+    MidiEvent me = new MidiEvent(sm, (long) 0);
+    t.add(me);
+
+    // Set tempo (meta event) see https://www.csie.ntu.edu.tw/~r92092/ref/midi/#settempo
+    // Set tempo byte nmarker is FF 51 03 tt tt tt
+    // If not specified, the default tempo is 120 beats/minute, which is equivalent to tttttt=500000
+    MetaMessage mt = new MetaMessage();
+    byte[] bt = {0x02, (byte) 0x00, 0x00};
+    mt.setMessage(0x51, bt, 3);
+    me = new MidiEvent(mt, (long) 0);
+    t.add(me);
+
+    // Set track name
+    mt = new MetaMessage();
+    String TrackName = new String("midifile track");
+    mt.setMessage(0x03, TrackName.getBytes(), TrackName.length());
+    me = new MidiEvent(mt, (long) 0);
+    t.add(me);
+
+    // Set omni on
+    ShortMessage mm = new ShortMessage();
+    mm.setMessage(0xB0, 0x7D, 0x00);
+    me = new MidiEvent(mm, (long) 0);
+    t.add(me);
+
+    // Turn poly on
+    mm = new ShortMessage();
+    mm.setMessage(0xB0, 0x7F, 0x00);
+    me = new MidiEvent(mm, (long) 0);
+    t.add(me);
+
+    // Set instrument to piano
+    mm = new ShortMessage();
+    mm.setMessage(0xC0, 0x00, 0x00);
+    me = new MidiEvent(mm, (long) 0);
+    t.add(me);
+
+    for (int i = 0; i < line.getLength(); i++) {
+
+      // Note on at t=timestamp
+      mm = new ShortMessage();
+      mm.setMessage(NOTE_ON, line.getPitchAtIndex(i), line.getVelocityAtIndex(i));
+      me = new MidiEvent(mm, line.getTimeStampAtIndex(i));
+      t.add(me);
+
+      // Note off at timestamp+duration
+      mm = new ShortMessage();
+      mm.setMessage(NOTE_OFF, line.getPitchAtIndex(i), 0x00);
+      me = new MidiEvent(mm, line.getTimeStampAtIndex(i) + line.getDurationAtIndex(i));
+      t.add(me);
+
+    }
+
+    // Set end of track a short while after the last note ends
+    long endTimeStamp = line.getTimeStampAtIndex(line.getLength() - 1)
+        + line.getDurationAtIndex(line.getLength() - 1) + 20;
+    mt = new MetaMessage();
+    byte[] bet = {}; // empty array
+    mt.setMessage(0x2F, bet, 0);
+    me = new MidiEvent(mt, endTimeStamp);
+    t.add(me);
+
+    File f = new File(filepath);
+    MidiSystem.write(s, 1, f);
+
   }
 
 }
