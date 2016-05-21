@@ -57,7 +57,7 @@ public class MidiStatic {
 
     // Obtain a sequence from the midi file
     Sequence sequence = MidiSystem.getSequence(midiImport);
-
+    
     Line melody = new Line(sequence.getResolution(), sequence.getDivisionType());
 
     // Iterate over the tracks in the sequence
@@ -155,10 +155,8 @@ public class MidiStatic {
     if (!filepath.endsWith(".mid")) {
       throw new InvalidParameterException("The filepath must have suffix .mid");
     }
-
-    int ticksPerBeat = line.getTicksPerBeat();
-
-    Sequence s = new Sequence(line.getDivisionType(), ticksPerBeat);
+    
+    Sequence s = new Sequence(line.getDivisionType(), line.getTicksPerBeat());
 
     Track t = s.createTrack();
 
@@ -169,17 +167,8 @@ public class MidiStatic {
     MidiEvent me = new MidiEvent(sm, (long) 0);
     t.add(me);
 
-    // Set tempo (meta event) see https://www.csie.ntu.edu.tw/~r92092/ref/midi/#settempo
-    // Set tempo byte nmarker is FF 51 03 tt tt tt
-    // If not specified, the default tempo is 120 beats/minute, which is equivalent to tttttt=500000
-    MetaMessage mt = new MetaMessage();
-    byte[] bt = {0x02, (byte) 0x00, 0x00};
-    mt.setMessage(0x51, bt, 3);
-    me = new MidiEvent(mt, (long) 0);
-    t.add(me);
-
     // Set track name
-    mt = new MetaMessage();
+    MetaMessage mt = new MetaMessage();
     String TrackName = new String("midifile track");
     mt.setMessage(0x03, TrackName.getBytes(), TrackName.length());
     me = new MidiEvent(mt, (long) 0);

@@ -163,7 +163,7 @@ public class Line {
    * @return the division type as a float
    */
   public float getDivisionType() {
-    return this.ticksPerBeat;
+    return this.divisionType;
   }
 
 }
