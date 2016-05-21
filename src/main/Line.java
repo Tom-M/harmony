@@ -25,8 +25,8 @@ public class Line {
    * 
    * @param timestamp The timestamp at which the note occurs (in ticks)
    * @param duration The duration of the note
-   * @param pitch The pitch of the note                                              //????UNITS?????
-   * @param velocity The velocity of the note                                        //????UNITS?????
+   * @param pitch The pitch of the note https://andymurkin.files.wordpress.com/2012/01/midi-int-midi-note-no-chart.jpg
+   * @param velocity The velocity of the note 
    */
   public void addNoteToLine(long timestamp, long duration, int pitch, int velocity) {
 
@@ -39,13 +39,13 @@ public class Line {
       this.velocities.add(velocity);
     }
   }
-  
+
   /**
    * Get the number of notes in this line
    * 
-   * @return integer value 
+   * @return integer value
    */
-  public int getLength(){
+  public int getLength() {
     return this.timestamps.size();
   }
 
