@@ -86,10 +86,14 @@ public class MidiStatic {
             MidiEvent nextEvent = null; 
             MidiMessage nextMessage = null;
             ShortMessage sm2 = null; 
-            while (!(nextMessage instanceof ShortMessage) || !(sm2.getCommand() == NOTE_OFF)){
+            int offPitch = -1;
+            //The correct "Note Off" event is the subsequent short message Note Off event with the same pitch as the Note On event 
+            // There is no guarantee that any subsequent "Note Off" will be the correct one, as the notes can overlap even in the same chanell 
+            while (!(nextMessage instanceof ShortMessage) || !(sm2.getCommand() == NOTE_OFF) || offPitch != pitch){
               nextEvent = track.get(j+1);
               nextMessage = nextEvent.getMessage(); 
               sm2 = (ShortMessage) nextMessage; 
+              offPitch = sm2.getData1();
               j++;
               if (j > track.size()){
                 throw new IndexOutOfBoundsException("I have reached the end of the track without finding the 'Note Off' signal");
