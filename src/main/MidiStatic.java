@@ -23,8 +23,8 @@ import javax.sound.midi.Track;
 public class MidiStatic {
 
   // Define the midi bytes which will be understood as switching a note on/off
-  public static final int NOTE_ON = 0x90;
-  public static final int NOTE_OFF = 0x80;
+  private static final int NOTE_ON = 0x90;
+  private static final int NOTE_OFF = 0x80;
 
 
 
