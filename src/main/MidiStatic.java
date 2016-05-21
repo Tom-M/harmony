@@ -40,7 +40,7 @@ public class MidiStatic {
    * @throws IOException 
    * @throws InvalidMidiDataException 
    */
-  public Line getMeoldyFromFile(String filepath) throws InvalidMidiDataException, IOException{
+  public static Line getMelodyFromFile(String filepath) throws InvalidMidiDataException, IOException{
    
     //Check the filepath points (in principle) to a midi file
     if (!filepath.endsWith(".midi") && !filepath.endsWith(".mid") ){
@@ -86,6 +86,7 @@ public class MidiStatic {
             MidiEvent nextEvent = null; 
             MidiMessage nextMessage = null;
             ShortMessage sm2 = null; 
+            long endTime = 0;
             int offPitch = -1;
             //The correct "Note Off" event is the subsequent short message Note Off event with the same pitch as the Note On event 
             // There is no guarantee that any subsequent "Note Off" will be the correct one, as the notes can overlap even in the same chanell 
@@ -98,9 +99,9 @@ public class MidiStatic {
               if (j > track.size()){
                 throw new IndexOutOfBoundsException("I have reached the end of the track without finding the 'Note Off' signal");
               }
-            long endTime = nextEvent.getTick();
-            duration = endTime - timestamp;
+              endTime = nextEvent.getTick();
             }
+            duration = endTime - timestamp;
             
             //Add the note to the melody line
             melody.addNoteToLine(timestamp,  duration,  pitch,  velocity); 
