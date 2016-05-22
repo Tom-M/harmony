@@ -1,10 +1,7 @@
 package test;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -42,7 +39,7 @@ public class MidiStaticTest {
   Assert.assertTrue(testMelody.getLength() == 19);
   
   //Get rid of the file as we don't need it anymore
-  Files.delete(Paths.get(filepath));    
+  Files.delete(Paths.get(filepath));   
       
   }
 
