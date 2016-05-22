@@ -7,6 +7,7 @@ import java.security.InvalidParameterException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaMessage;
@@ -124,39 +125,64 @@ public class MidiStatic {
   }
 
   /**
-   * An override for saveLineToMidiFile. This one saves it to the savedMidis folder of this project,
-   * and names the file with the date and time. These files are ignored by git.
+   * An override for saveLinesToMidiFile. This one saves it to the savedMidis folder of this
+   * project, and names the file with the date and time. These files are ignored by git.
    * 
-   * @param line The line to be saved
+   * @param lines The list of lines to be overlaid and saved
    * @throws InvalidMidiDataException
    * @throws IOException
    */
-  public static void saveLineToMidiFile(Line line) throws InvalidMidiDataException, IOException {
+  public static void saveLinesToMidiFile(List<Line> lines)
+      throws InvalidMidiDataException, IOException {
 
     // Get the date and time for use in the default extension
     DateFormat df = new SimpleDateFormat("dd-MM-yy_HH-mm-ss");
     Date dateobj = new Date();
 
-    saveLineToMidiFile(line, "src/savedMidis/" + df.format(dateobj) + ".mid");
+    saveLinesToMidiFile(lines, "src/savedMidis/" + df.format(dateobj) + ".mid");
   }
 
   /**
-   * Take a Line object as input and save it out to a .mid file. Based on (more or less verbatim)
-   * http://www.automatic-pilot.com/midifile.html
+   * Takes a list of lines as input, overlays them in a midi sequence and saves them out to a
+   * specified destination. All lines are currently saved to a single channel with the piano sound
    * 
-   * @param line The line to be saved as a .mid file
+   * @param lines The list of lines to be overlaid and saved
    * @param filepath The filepath to be saved to. Must end with .mid
    * @throws InvalidMidiDataException
    * @throws IOException
    */
-  public static void saveLineToMidiFile(Line line, String filepath)
+  public static void saveLinesToMidiFile(List<Line> lines, String filepath)
       throws InvalidMidiDataException, IOException {
 
     if (!filepath.endsWith(".mid")) {
       throw new InvalidParameterException("The filepath must have suffix .mid");
     }
 
-    Sequence s = new Sequence(line.getDivisionType(), line.getTicksPerBeat());
+    // At the moment we assume that all the lines supplied have the same division type and ticks per
+    // beat as the first line. If the timings get messed up, this may well be why
+    float divisionType = lines.get(0).getDivisionType();
+    int ticksPerBeat = lines.get(0).getTicksPerBeat();
+
+    Sequence s = new Sequence(divisionType, ticksPerBeat);
+
+    for (Line l : lines) {
+      addLineToMidiSequence(s, l);
+    }
+
+    File f = new File(filepath);
+    MidiSystem.write(s, 1, f);
+
+  }
+
+  /**
+   * Take a Line object as input and adds it to a midi sequence. Based on (more or less verbatim)
+   * http://www.automatic-pilot.com/midifile.html
+   * 
+   * @param s The Sequence to which the line will be added.
+   * @param line The line to be added to the midi sequence
+   * @throws InvalidMidiDataException
+   */
+  private static void addLineToMidiSequence(Sequence s, Line line) throws InvalidMidiDataException {
 
     Track t = s.createTrack();
 
@@ -203,9 +229,6 @@ public class MidiStatic {
     mt.setMessage(0x2F, bet, 0);
     me = new MidiEvent(mt, endTimeStamp);
     t.add(me);
-
-    File f = new File(filepath);
-    MidiSystem.write(s, 1, f);
 
   }
 

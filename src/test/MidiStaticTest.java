@@ -3,6 +3,8 @@ package test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.sound.midi.InvalidMidiDataException;
 
@@ -24,13 +26,17 @@ public class MidiStaticTest {
   }
   
   @Test
-  public void testSaveLineToMidiFile() throws InvalidMidiDataException, IOException {
+  public void testSaveLinesToMidiFile() throws InvalidMidiDataException, IOException {
 
+  //First a test involving a single melody
   Line testMelody = MidiStatic.getMelodyFromFile("src/test/Resources/MidiStaticTest_Resource1.mid");
   
   String filepath = "src/test/Resources/testExport1.mid";
   
-  MidiStatic.saveLineToMidiFile(testMelody, filepath);
+  List<Line> lines = new ArrayList<Line>();
+  lines.add(testMelody);
+  
+  MidiStatic.saveLinesToMidiFile(lines, filepath);
   
   //Reimport the file to check everything is still working
   testMelody = MidiStatic.getMelodyFromFile(filepath);
@@ -40,7 +46,19 @@ public class MidiStaticTest {
   
   //Get rid of the file as we don't need it anymore
   Files.delete(Paths.get(filepath));   
-      
+  
+  //Second a test for multiple lines
+  Line testMelody2 = MidiStatic.getMelodyFromFile("src/test/Resources/MidiStaticTest_Resource2.mid");
+  
+  lines.add(testMelody2);
+  
+  filepath = "src/test/Resources/testExport2.mid";
+  
+  //Check we don't throw an error
+  MidiStatic.saveLinesToMidiFile(lines, filepath);
+  
+  //Get rid of the file as we don't need it anymore
+  Files.delete(Paths.get(filepath));  
   }
 
 }
