@@ -8,10 +8,7 @@ public class Line {
 
   // Ordered list of ordered quadruplets (timestamp, duration, pitch, velocity) representing the
   // sequence of notes in this line
-  private List<Long> timestamps;
-  private List<Long> durations;
-  private List<Integer> pitches;
-  private List<Integer> velocities;
+  private List<Note> notes;
 
   private float divisionType;
   private int ticksPerBeat;
@@ -28,10 +25,7 @@ public class Line {
    *        synched up properly
    */
   public Line(int ticksPerBeat, float divisionType) {
-    this.timestamps = new ArrayList<Long>();
-    this.durations = new ArrayList<Long>();
-    this.pitches = new ArrayList<Integer>();
-    this.velocities = new ArrayList<Integer>();
+    this.notes = new ArrayList<Note>();
 
     this.ticksPerBeat = ticksPerBeat;
     this.divisionType = divisionType;
@@ -39,7 +33,7 @@ public class Line {
   }
 
   /**
-   * Adds a note to the line. Is configured to throw an exception if any of the input params are -1
+   * Adds a Note object to the line. Is configured to throw an exception if any of the input params are -1
    * 
    * @param timestamp The timestamp at which the note occurs (in ticks)
    * @param duration The duration of the note
@@ -52,10 +46,10 @@ public class Line {
     if (timestamp == -1 || duration == -1 || pitch == -1 || velocity == -1) {
       throw new InvalidParameterException("Input should not be -1");
     } else {
-      this.timestamps.add(timestamp);
-      this.durations.add(duration);
-      this.pitches.add(pitch);
-      this.velocities.add(velocity);
+      this.notes.add(new Note(timestamp,duration,pitch,velocity));
+      
+      //CHECK THE NOTE IS ADDED PROPERLY. IF TESTS STILL WORK THEN IT HAS BEEN
+      
     }
   }
 
@@ -65,7 +59,7 @@ public class Line {
    * @return integer value
    */
   public int getLength() {
-    return this.timestamps.size();
+    return this.notes.size();
   }
 
   /**
@@ -77,14 +71,14 @@ public class Line {
    */
   public long getTimeStampAtIndex(int i) {
 
-    if (i > this.timestamps.size() - 1) {
+    if (i > this.notes.size() - 1) {
       throw new IndexOutOfBoundsException("Index out of Bounds");
     }
     if (i < 0) {
       throw new IndexOutOfBoundsException("Index should not be negative");
     }
 
-    return this.timestamps.get(i);
+    return this.notes.get(i).getTimestamp();
   }
 
   /**
@@ -96,14 +90,14 @@ public class Line {
    */
   public long getDurationAtIndex(int i) {
 
-    if (i > this.durations.size() - 1) {
+    if (i > this.notes.size() - 1) {
       throw new IndexOutOfBoundsException("Index out of Bounds");
     }
     if (i < 0) {
       throw new IndexOutOfBoundsException("Index should not be negative");
     }
 
-    return this.durations.get(i);
+    return this.notes.get(i).getDuration();
   }
 
   /**
@@ -116,14 +110,14 @@ public class Line {
    */
   public int getPitchAtIndex(int i) {
 
-    if (i > this.pitches.size() - 1) {
+    if (i > this.notes.size() - 1) {
       throw new IndexOutOfBoundsException("Index out of Bounds");
     }
     if (i < 0) {
       throw new IndexOutOfBoundsException("Index should not be negative");
     }
 
-    return this.pitches.get(i);
+    return this.notes.get(i).getPitch();
   }
 
   /**
@@ -136,14 +130,14 @@ public class Line {
    */
   public int getVelocityAtIndex(int i) {
 
-    if (i > this.velocities.size() - 1) {
+    if (i > this.notes.size() - 1) {
       throw new IndexOutOfBoundsException("Index out of Bounds");
     }
     if (i < 0) {
       throw new IndexOutOfBoundsException("Index should not be negative");
     }
 
-    return this.velocities.get(i);
+    return this.notes.get(i).getVelocity();
   }
 
   /**

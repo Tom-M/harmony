@@ -32,14 +32,14 @@ public class MidiStatic {
   private static final int NOTE_ON = 0x90;
   private static final int NOTE_OFF = 0x80;
 
-
-
-  // A midi file can contain as many tracks as you like, each containing up to 16 channels (this is
-  // a way to get around the 16 channel limit)--see
-  // https://docs.oracle.com/javase/7/docs/api/javax/sound/midi/Track.html
-
   /**
    * Takes a string path (pointing to a midi file) and converts the midi data into a Line object
+   * 
+   * Note: This method is currently quite brittle, and cannot be relied upon to work for complex
+   * midi files. The midi files I tested it with are straightforward, single channel sequences of
+   * Note_ON and Note_OFF events of the kind which can be easily generated with ScoreCloud
+   * http://scorecloud.com/ (Midi export requires plus subscription for about $5 per month and you
+   * get a free month).
    * 
    * @param filepath The string filepath pointing to the midi file
    * @return A Line object
