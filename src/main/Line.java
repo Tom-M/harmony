@@ -12,7 +12,7 @@ import javax.sound.midi.InvalidMidiDataException;
 
 public class Line {
 
-  Logger logger = LoggerFactory.getLogger(Line.class);
+  static Logger logger = LoggerFactory.getLogger(Line.class);
 
   // Ordered list of ordered quadruplets (timestamp, duration, pitch, velocity) representing the
   // sequence of notes in this line

@@ -19,6 +19,9 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.SysexMessage;
 import javax.sound.midi.Track;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * 
  * A class containing static methods for handling midi files
@@ -28,6 +31,8 @@ import javax.sound.midi.Track;
  */
 public class MidiStatic {
 
+  static Logger logger = LoggerFactory.getLogger(MidiStatic.class);
+  
   // Define the midi bytes which will be understood as switching a note on/off
   private static final int NOTE_ON = 0x90;
   private static final int NOTE_OFF = 0x80;
@@ -48,18 +53,25 @@ public class MidiStatic {
    */
   public static Line getMelodyFromFile(String filepath)
       throws InvalidMidiDataException, IOException {
-
+    
     // Check the filepath points (in principle) to a midi file
     if (!filepath.endsWith(".midi") && !filepath.endsWith(".mid")) {
       throw new InvalidParameterException("The filepath string must point to a midi file");
     }
+    
+
+    logger.info("Attempting to generate Line object from midi file at url "+filepath);
 
     File midiImport = new File(filepath);
+    
+    logger.info("Successfully obtained file");
 
     // Obtain a sequence from the midi file
     Sequence sequence = MidiSystem.getSequence(midiImport);
 
     Line melody = new Line(sequence.getResolution(), sequence.getDivisionType());
+    
+    logger.info("Successfully obtained midi sequence. Analysing Tracks");
 
     // Iterate over the tracks in the sequence
     for (Track track : sequence.getTracks()) {
@@ -121,6 +133,9 @@ public class MidiStatic {
         }
       }
     }
+    
+    logger.info("Successfully generated line object from "+filepath);
+    
     return melody;
   }
 
@@ -134,7 +149,7 @@ public class MidiStatic {
    */
   public static void saveLinesToMidiFile(List<Line> lines)
       throws InvalidMidiDataException, IOException {
-
+    
     // Get the date and time for use in the default extension
     DateFormat df = new SimpleDateFormat("dd-MM-yy_HH-mm-ss");
     Date dateobj = new Date();
@@ -157,6 +172,8 @@ public class MidiStatic {
     if (!filepath.endsWith(".mid")) {
       throw new InvalidParameterException("The filepath must have suffix .mid");
     }
+    
+    logger.info("Saving lines to midi file");
 
     // At the moment we assume that all the lines supplied have the same division type and ticks per
     // beat as the first line. If the timings get messed up, this may well be why
@@ -171,6 +188,8 @@ public class MidiStatic {
 
     File f = new File(filepath);
     MidiSystem.write(s, 1, f);
+    
+    logger.info("Successfully saved lines to midi file at "+filepath);
 
   }
 
