@@ -213,4 +213,18 @@ public class Line {
     return this.notes;
   }
 
+  /**
+   * @return the maxPitch
+   */
+  public int getMaxPitch() {
+    return maxPitch;
+  }
+
+  /**
+   * @return the minPitch
+   */
+  public int getMinPitch() {
+    return minPitch;
+  }
+
 }
