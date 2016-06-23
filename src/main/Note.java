@@ -66,18 +66,18 @@ public class Note {
   /**
    * Changes the pitch to any key between minKey and maxKey, inclusive, with equal probability
    * 
-   * @param minKey The lower bound (inclusive) which the note may mutate between 
-   * @param maxKey The upper bound (inclusive) which the note may mutate between 
+   * @param minPitch The lower bound (inclusive) which the note may mutate between 
+   * @param maxPitch The upper bound (inclusive) which the note may mutate between 
    */
-  public void mutatePitch(int minKey, int maxKey) {
-    if (minKey<0 || maxKey <0 || minKey>127 || maxKey >127){
+  public void mutatePitch(int minPitch, int maxPitch) {
+    if (minPitch<0 || maxPitch <0 || minPitch>127 || maxPitch >127){
       throw new InvalidParameterException("keys must be between 0<key<127. You have set minKey = "
-        +minKey+" and maxKey = "+maxKey);
+        +minPitch+" and maxKey = "+maxPitch);
     }
-    if (minKey>maxKey) {
+    if (minPitch>maxPitch) {
       throw new InvalidParameterException("minKey cannot be greater than maxKey");
     }
-    int newPitch = (int) Math.round((double) minKey + (maxKey - minKey)*Math.random());
+    int newPitch = (int) Math.round((double) minPitch + (maxPitch - minPitch)*Math.random());
     this.setPitch(newPitch);
   }
 
