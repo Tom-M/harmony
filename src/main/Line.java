@@ -17,6 +17,12 @@ public class Line {
   private int ticksPerBeat;
 
   /**
+   * These dictate the max/min pitch values between which notes in this line may sit
+   */
+  private int maxPitch;
+  private int minPitch;
+
+  /**
    * Creates a line object with metadata concerning tempo but no specific note data
    * 
    * @param ticksPerBeat The ticks per beat for this line. This parameter is intended to be either
@@ -48,6 +54,27 @@ public class Line {
     this.notes = importedLine.getNotes();
     this.ticksPerBeat = importedLine.getTicksPerBeat();
     this.divisionType = importedLine.getDivisionType();
+  }
+
+  /**
+   * Creates a new Line object based on a template line. The horizontal note placement is preserved,
+   * and the pitches are randomised within the specified bounds (which are set as the bounds for
+   * this line)
+   * 
+   * @param template The template line
+   * @param minPitch The minimum pitch
+   * @param maxPitch The maximum pitch
+   */
+  public Line(Line template, int minPitch, int maxPitch) {
+    this.ticksPerBeat = template.getTicksPerBeat();
+    this.divisionType = template.getDivisionType();
+    this.notes = template.getNotes();
+    for (Note note : this.notes) {
+      note.mutatePitch(minPitch, maxPitch);
+    }
+    this.maxPitch = maxPitch;
+    this.minPitch = minPitch;
+
   }
 
   /**
