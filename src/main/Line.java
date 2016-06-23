@@ -3,6 +3,7 @@ package main;
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -87,8 +88,9 @@ public class Line {
     } else {
       logger.error("Attempted to create line with minPitch = " + minPitch + ", maxPitch = "
           + maxPitch + ". We require minPitch >= 0, maxPitch <= 127 & maxPitch > minPitch.");
-      throw new InvalidParameterException("Attempted to create line with minPitch = " + minPitch + ", maxPitch = "
-          + maxPitch + ". We require minPitch >= 0, maxPitch <= 127 & maxPitch > minPitch.");
+      throw new InvalidParameterException(
+          "Attempted to create line with minPitch = " + minPitch + ", maxPitch = " + maxPitch
+              + ". We require minPitch >= 0, maxPitch <= 127 & maxPitch > minPitch.");
     }
 
   }
@@ -249,6 +251,46 @@ public class Line {
           "minPitch does not seem to have been set for this Line object, it seems to be a melody");
     }
     return minPitch;
+  }
+
+  /**
+   * Call this method if you want to know which notes in the line are on in a given time window
+   * (used for optimisation to work out which notes in the various lines are on at the same time--we
+   * can't use indexing as they may have different numbers of notes as well as different durations
+   * and timestamps)
+   * 
+   * @param startOfWindow The beginning of the time window
+   * @param durationOfWindow The length of the time window
+   * @return A Hashmap of all the notes which are on during this period to the durations for which
+   *         they are on during this period (NOT to the durations of the notes themselves).
+   */
+  public HashMap<Note, Long> getNotesWithinTimeFrame(long startOfWindow, long durationOfWindow) {
+    
+    HashMap<Note, Long> mapOfNotesToDurations = new HashMap<Note, Long>();
+    
+    for (Note note : this.notes) {
+      
+      //Get note timestamp and duration
+      long noteTimestamp = note.getTimestamp();
+      long noteDuration = note.getDuration();
+      
+      // Check if ((the note starts after the initialTimestamp OR if the note extends into the time
+      // window) AND the timestamp is before the end of the window)
+      if ((noteTimestamp >= startOfWindow || noteTimestamp + noteDuration >= startOfWindow)
+          && noteTimestamp <= startOfWindow + durationOfWindow) {
+        
+        // Calculate how long the note is on for over the period.
+        // Time for which the note is on over this time window is the turn off time or end of window
+        // (whichever is smallest) minus the turn on time or start of window (whichever is largest)
+        long endPoint = (noteTimestamp + noteDuration > startOfWindow + durationOfWindow)
+            ? startOfWindow + durationOfWindow : noteTimestamp + noteDuration;
+        long startPoint = (noteTimestamp > startOfWindow) ? noteTimestamp : startOfWindow;
+        long onTime = endPoint - startPoint;
+        
+        mapOfNotesToDurations.put(note, onTime);
+      }
+    }
+    return mapOfNotesToDurations;
   }
 
 }
