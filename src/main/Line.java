@@ -1,8 +1,11 @@
 package main;
 
+import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.sound.midi.InvalidMidiDataException;
 
 public class Line {
 
@@ -33,7 +36,23 @@ public class Line {
   }
 
   /**
-   * Adds a Note object to the line. Is configured to throw an exception if any of the input params are -1
+   * Use this constructor to get a line object straight from a midi filepath. This is
+   * interchangeable with MidiStatic.getMelodyFromFile but is included for neatness
+   * 
+   * @param filepath The midi filepath
+   * @throws InvalidMidiDataException
+   * @throws IOException
+   */
+  public Line(String filepath) throws InvalidMidiDataException, IOException {
+    Line importedLine = MidiStatic.getMelodyFromFile(filepath);
+    this.notes = importedLine.getNotes();
+    this.ticksPerBeat = importedLine.getTicksPerBeat();
+    this.divisionType = importedLine.getDivisionType();
+  }
+
+  /**
+   * Adds a Note object to the line. Is configured to throw an exception if any of the input params
+   * are -1
    * 
    * @param timestamp The timestamp at which the note occurs (in ticks)
    * @param duration The duration of the note
@@ -46,10 +65,10 @@ public class Line {
     if (timestamp == -1 || duration == -1 || pitch == -1 || velocity == -1) {
       throw new InvalidParameterException("Input should not be -1");
     } else {
-      this.notes.add(new Note(timestamp,duration,pitch,velocity));
-      
-      //CHECK THE NOTE IS ADDED PROPERLY. IF TESTS STILL WORK THEN IT HAS BEEN
-      
+      this.notes.add(new Note(timestamp, duration, pitch, velocity));
+
+      // TODO: CHECK THE NOTE IS ADDED PROPERLY. IF TESTS STILL WORK THEN IT HAS BEEN
+
     }
   }
 
@@ -158,6 +177,13 @@ public class Line {
    */
   public float getDivisionType() {
     return this.divisionType;
+  }
+
+  /**
+   * @return The list of notes constituting this line
+   */
+  public List<Note> getNotes() {
+    return this.notes;
   }
 
 }
