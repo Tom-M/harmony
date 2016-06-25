@@ -138,4 +138,26 @@ public class LinePopulation {
 
   }
 
+  /**
+   * Compute the average of getPitchFitnessScore() as taken over all the notes in this population
+   * 
+   * @return The average fitness as a double between 0 and 1
+   */
+  public double getAverageFitnessScore() {
+
+    // Count the number of values whose score we are computing
+    int totalScores = 0;
+    // Get the sum of all the scores
+    double sumOfScores = 0;
+
+    for (int l = 0; l < this.lines.size(); l++) {
+      for (int n = 0; n < this.lines.get(l).getLength(); n++) {
+        totalScores += 1;
+        sumOfScores += this.getPitchFitnessScore(l, n);
+      }
+    }
+    return sumOfScores / totalScores;
+
+  }
+
 }
