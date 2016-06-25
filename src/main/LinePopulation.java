@@ -1,6 +1,8 @@
 package main;
 
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -60,6 +62,80 @@ public class LinePopulation {
               + " melody line, as this one behaves differently, for example its notes cannot be mutated");
     }
     return this.lines.get(index);
+  }
+
+  /**
+   * Calculate the pitch fitness of the note with index noteIndex belonging to the line in this
+   * population with index lineIndex.
+   * 
+   * The pitch fitness gives an idea of how good the harmonic intervals between this note and the
+   * notes in the other lines are.
+   * 
+   * The pitch fitness is calculated by first finding all the notes in all the other lines which are
+   * 'on' at the same time as this note. The individual pitch fitness of this note to each of those
+   * is then separately calculated. They are then summed together with a weighting corresponding to
+   * the time for which they are on at the same time as the note in question (shorter times
+   * contribute less to the fitness score)
+   * 
+   * @param lineIndex The index of the line within this LinePopulation's list of lines. Must not be
+   *        the melody (index 0)
+   * @param noteIndex The index of the note whose fitness is to be calculated
+   * @return The pitch fitness score as a double between 0 (lowest score) and 1 (highest score)
+   */
+  public double getPitchFitnessScore(int lineIndex, int noteIndex) {
+
+    // Check the parameters
+    if (lineIndex > lines.size() - 1 || lineIndex < 1) {
+      throw new InvalidParameterException(lineIndex + " is not a valid lineIndex value. "
+          + "lineindex must point to one of the lines in the population which isn't "
+          + "the melody line at index 0. In this case that means 0 < lineIndex < "
+          + String.valueOf(lines.size() - 1));
+    }
+    if (noteIndex > lines.get(lineIndex).getLength() - 1 || noteIndex < 0) {
+      throw new InvalidParameterException(noteIndex + " is not a valid note index. "
+          + "The line specified has " + lines.get(lineIndex).getLength() + " notes, so"
+          + " noteIndex must be between 0 < noteIndex < "
+          + String.valueOf(lines.get(lineIndex).getLength() - 1));
+    }
+
+    Line lineInQuestion = this.lines.get(lineIndex);
+    Note noteInQuestion = lineInQuestion.getNotes().get(noteIndex);
+
+    // First we need to build a HashMap of Notes to the times for which they are on at the same time
+    // as this note
+    // We do this by looking at each other line in turn and building a hashmap for each, then adding
+    // these to a list and concatenating them
+    HashMap<Note, Long> concatenatedMapOfNotesToDurations = new HashMap<Note, Long>();
+    for (int i = 0; i < this.lines.size(); i++) {
+
+      if (i == lineIndex) {
+        // We don't consider the line we're on
+        continue;
+      }
+
+      HashMap<Note, Long> mapOfNotesToDurations = this.lines.get(i)
+          .getNotesWithinTimeFrame(noteInQuestion.getTimestamp(), noteInQuestion.getDuration());
+      for (Note note : mapOfNotesToDurations.keySet()) {
+        concatenatedMapOfNotesToDurations.put(note, mapOfNotesToDurations.get(note));
+      }
+    }
+    // Now we have a hashmap of all the notes in all the other lines which are on at the same time
+    // as this note mapped to the time for which they are on.
+    // The score is then a weighted sum of the individual consonance scores
+
+    double sum = 0;
+
+    for (Note note : concatenatedMapOfNotesToDurations.keySet()) {
+      // Multiply the consonance score by the time for which the note is on and add it to the total
+      // sum
+      sum += noteInQuestion.calculateIPitchConsonanceScore(note)
+          * concatenatedMapOfNotesToDurations.get(note);
+    }
+
+    // To normalise the score, divide it by the total time the note is on for * the number of
+    // harmony lines, so that we get a score between 0 and 1
+    return sum / (noteInQuestion.getDuration() * (this.lines.size() - 1));
+
   }
 
 }

@@ -66,19 +66,65 @@ public class Note {
   /**
    * Changes the pitch to any key between minKey and maxKey, inclusive, with equal probability
    * 
-   * @param minPitch The lower bound (inclusive) which the note may mutate between 
-   * @param maxPitch The upper bound (inclusive) which the note may mutate between 
+   * @param minPitch The lower bound (inclusive) which the note may mutate between
+   * @param maxPitch The upper bound (inclusive) which the note may mutate between
    */
   public void mutatePitch(int minPitch, int maxPitch) {
-    if (minPitch<0 || maxPitch <0 || minPitch>127 || maxPitch >127){
+    if (minPitch < 0 || maxPitch < 0 || minPitch > 127 || maxPitch > 127) {
       throw new InvalidParameterException("keys must be between 0<key<127. You have set minKey = "
-        +minPitch+" and maxKey = "+maxPitch);
+          + minPitch + " and maxKey = " + maxPitch);
     }
-    if (minPitch>maxPitch) {
+    if (minPitch > maxPitch) {
       throw new InvalidParameterException("minKey cannot be greater than maxKey");
     }
-    int newPitch = (int) Math.round((double) minPitch + (maxPitch - minPitch)*Math.random());
+    int newPitch = (int) Math.round((double) minPitch + (maxPitch - minPitch) * Math.random());
     this.setPitch(newPitch);
+  }
+
+  /**
+   * Looks at th pitches of this note and a comparison note and returns a score between 0 and 1 for
+   * the consonance. 
+   * 1.0--Perfect intervals (P5 and Octave) 
+   * 0.75--Maj/Min 3rds and 6ths
+   * 0.25--Perfect unison (gets a low score as it is consonant but boring) 
+   * 0.0--All others (including P4 for the sake of simplicity)
+   * 
+   * Of course this is extremely rough and won't be adhered to extremely strictly, but it should at
+   * least ensure that we don't have a song full of dissonances
+   * 
+   * @param comparisonNote The note whose pitch will be compared
+   * @return A score between 0 and 1, with 1 being most consonant and 0 being least
+   */
+  public double calculateIPitchConsonanceScore(Note comparisonNote) {
+
+    // We want to calculate the frequency ratio of these two notes.
+    int pitchOfThisNote = this.getPitch();
+    int pitchOfComparisonNote = comparisonNote.getPitch();
+
+    // This was originally something cleverer, but like so many clever things, it was obtuse and not
+    // as good as something simpler, so we just assign a score based on the intervals
+    // Of course this is highly subjective, but it at least means that we will usually have more
+    // consonances than dissonances in the song
+
+    int semitoneSteps = Math.abs(pitchOfThisNote - pitchOfComparisonNote);
+
+    if (semitoneSteps == 0) {
+      // if the notes are the same this is consonant but dull, so assign a low score
+      return 0.25;
+    } else if (semitoneSteps % 7 == 0 || semitoneSteps % 12 == 0) {
+      // The perfect intervals get a high score
+      return 1.0;
+    } else if (semitoneSteps % 3 == 0 || semitoneSteps % 4 == 0 || semitoneSteps % 8 == 0
+        || semitoneSteps % 9 == 0) {
+      // The major/minor 3rds and 6ths are imperfect consonances so get upper-middle scores
+      return 0.75;
+    } else {
+      // All of the others get low scores as they are dissonant
+      return 0.0;
+    }
+
+
+
   }
 
 }
