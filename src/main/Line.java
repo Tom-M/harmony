@@ -112,8 +112,6 @@ public class Line {
     } else {
       this.notes.add(new Note(timestamp, duration, pitch, velocity));
 
-      // TODO: CHECK THE NOTE IS ADDED PROPERLY. IF TESTS STILL WORK THEN IT HAS BEEN
-
     }
   }
 
